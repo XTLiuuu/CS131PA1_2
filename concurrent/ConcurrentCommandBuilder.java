@@ -53,6 +53,8 @@ public class ConcurrentCommandBuilder {
 					return null;
 				}
 	}
+	
+	
 	/**
 	 * Returns the filter that appears last in the specified command
 	 * @param command the command to search from
@@ -70,6 +72,8 @@ public class ConcurrentCommandBuilder {
 			}
 		}
 	}
+	
+	
 	/**
 	 * Returns a string that contains the specified command without the final filter
 	 * @param command the command to parse and remove the final filter from 
@@ -97,6 +101,8 @@ public class ConcurrentCommandBuilder {
 		}
 		return removeRedir[0];
 	}
+	
+	
 	/**
 	 * Creates a single filter from the specified subCommand
 	 * @param subCommand the command to create a filter from
@@ -137,6 +143,8 @@ public class ConcurrentCommandBuilder {
 		}
 		return filter;
 	}
+	
+	
 	/**
 	 * links the given filters with the order they appear in the list
 	 * @param filters the given filters to link

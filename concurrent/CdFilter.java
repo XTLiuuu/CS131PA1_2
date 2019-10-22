@@ -47,16 +47,32 @@ public class CdFilter extends ConcurrentFilter {
 		}
 	}
 	
+	
 	/**
 	 * Simply calls processLine with an empty parameter
 	 */
+	@Override
 	public void process() {
+		if (Thread.currentThread().isInterrupted()) {
+			return ;
+		}
 		processLine("");
 	}
 	
+	
 	/**
-	 * sets the currentWorkingDirectory field of ConcurrentREPL to the specified directory.
+	 * Checks if the current command is still running 
 	 */
+	@Override
+	public boolean isDone() {
+		return !running; 
+	}
+	
+	
+	/**
+	 * Sets the currentWorkingDirectory field of ConcurrentREPL to the specified directory.
+	 */
+	@Override
 	public String processLine(String line) {
 		ConcurrentREPL.currentWorkingDirectory = dirToSet;
 		return null;

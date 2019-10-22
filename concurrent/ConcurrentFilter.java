@@ -1,6 +1,5 @@
 package cs131.pa1.filter.concurrent;
-import java.util.LinkedList;
-import java.util.Queue;
+import java.util.concurrent.LinkedBlockingQueue;
 
 import cs131.pa1.filter.Filter;
 
@@ -10,21 +9,26 @@ import cs131.pa1.filter.Filter;
  * @author cs131a
  *
  */
-public abstract class ConcurrentFilter extends Filter {
+public abstract class ConcurrentFilter extends Filter implements Runnable {
 	/**
 	 * The input queue for this filter
 	 */
-	protected Queue<String> input;
+	protected LinkedBlockingQueue<String> input;
 	/**
 	 * The output queue for this filter
 	 */
-	protected Queue<String> output;
-	
+	protected LinkedBlockingQueue<String> output;
+	/**
+	 * Whether the current command is still running
+	 */
+	protected boolean running = true; 
+
 	@Override
 	public void setPrevFilter(Filter prevFilter) {
 		prevFilter.setNextFilter(this);
 	}
-	
+
+
 	@Override
 	public void setNextFilter(Filter nextFilter) {
 		if (nextFilter instanceof ConcurrentFilter){
@@ -32,13 +36,15 @@ public abstract class ConcurrentFilter extends Filter {
 			this.next = sequentialNext;
 			sequentialNext.prev = this;
 			if (this.output == null){
-				this.output = new LinkedList<String>();
+				this.output = new LinkedBlockingQueue<String>();
 			}
 			sequentialNext.input = this.output;
 		} else {
 			throw new RuntimeException("Should not attempt to link dissimilar filter types.");
 		}
 	}
+
+
 	/**
 	 * Gets the next filter
 	 * @return the next filter
@@ -46,24 +52,55 @@ public abstract class ConcurrentFilter extends Filter {
 	public Filter getNext() {
 		return next;
 	}
+
+
 	/**
-	 * processes the input queue and writes the result to the output queue
+	 * Runs the current thread
+	 */
+	public void run() {
+		process();
+		if (!Thread.currentThread().isInterrupted()) {
+			running = false; // when the process finishes, sets the running to false
+		}
+	}
+
+
+	/**
+	 * Processes the input queue and writes the result to the output queue
 	 */
 	public void process(){
-		while (!input.isEmpty()){
+		while (!isDone()) {
+			if (Thread.currentThread().isInterrupted()) {
+				break;
+			}
 			String line = input.poll();
+			if (line == null) {
+				continue;
+			}
 			String processedLine = processLine(line);
 			if (processedLine != null){
-				output.add(processedLine);
+				output.offer(processedLine);
 			}
-		}	
+		}
 	}
-	
+
+
+	/**
+	 * Checks if the previous filter is done
+	 */
 	@Override
 	public boolean isDone() {
-		return input.size() == 0;
+		if (this.prev == null || prev.isDone()) {
+			return input.isEmpty();
+		}
+		return false;
 	}
-	
+
+	/**
+	 * Processes a single line
+	 * @param line
+	 * @return the processed line
+	 */
 	protected abstract String processLine(String line);
-	
+
 }

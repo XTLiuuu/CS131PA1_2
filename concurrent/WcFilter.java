@@ -1,4 +1,5 @@
 package cs131.pa1.filter.concurrent;
+
 /**
  * The filter for wc command
  * @author cs131a
@@ -18,17 +19,41 @@ public class WcFilter extends ConcurrentFilter {
 	 */
 	private int charcount;
 	
+	
+	/**
+	 * The constructor of the wc filter
+	 */
 	public WcFilter() {
 		super();
 	}
 	
+	
+	/**
+	 *  Counts the number of lines, words, characters 
+	 */
 	public void process() {
-		if(isDone()) {
-			output.add(processLine(null));
-		} else {
-			super.process();
+		if (prev.isDone() && input.isEmpty()) {
+			output.offer(processLine(null));
+			running = false; 
+		}
+		else {
+			while (!prev.isDone() || !input.isEmpty()) {
+				if (Thread.currentThread().isInterrupted()) {
+					break;
+				}
+				String line = input.poll();
+				if (line == null) {
+					continue; 
+				}
+				line = processLine(line);
+				if (line != null) {
+					output.offer(line);
+				}
+			}
 		}
 	}
+	
+	
 	/**
 	 * Counts the number of lines, words and characters from the input queue
 	 * @param line the line as got from the input queue
@@ -39,7 +64,6 @@ public class WcFilter extends ConcurrentFilter {
 		if(line == null) {
 			return linecount + " " + wordcount + " " + charcount;
 		}
-		
 		if(isDone()) {
 			String[] wct = line.split(" ");
 			wordcount += wct.length;
@@ -54,5 +78,28 @@ public class WcFilter extends ConcurrentFilter {
 			charcount += cct.length;
 			return null;
 		}
+	}
+	
+	
+	/**
+	 * Runs the command 
+	 */
+	@Override 
+	public void run() {
+		while (!isDone()) {
+			if (Thread.currentThread().isInterrupted()) {
+				break;
+			}
+			process();
+		}
+	}
+	
+	
+	/**
+	 * Checks if the command finishes 
+	 */
+	@Override 
+	public boolean isDone() {
+		return !running; 
 	}
 }

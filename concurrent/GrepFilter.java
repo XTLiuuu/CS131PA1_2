@@ -1,5 +1,6 @@
 package cs131.pa1.filter.concurrent;
 
+
 import cs131.pa1.filter.Message;
 /**
  * The filter for grep command
@@ -26,16 +27,33 @@ public class GrepFilter extends ConcurrentFilter {
 			throw new Exception();
 		}
 	}
+	
+	
 	/**
 	 * checks whether each line contains the text to find that we passed in the constructor
 	 * @param line the line as coming from the input
 	 * @return the line, if the specified text was found, otherwise null
 	 */
+	@Override
 	public String processLine(String line) {
 		if(line.contains(toFind)) {
 			return line;
 		} else {
 			return null;
 		}
+	}
+	
+	/**
+	 * Runs the current command 
+	 */
+	@Override
+	public void run() {
+		while (!isDone()) {
+			if (Thread.currentThread().isInterrupted()) {
+				break;
+			}
+			process();
+		}
+		running = false;
 	}
 }

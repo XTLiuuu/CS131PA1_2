@@ -41,26 +41,54 @@ public class RedirectFilter extends ConcurrentFilter {
 		}
 	}
 	
+	
+	/**
+	 * Processes the current command 
+	 */
+	@Override 
 	public void process() {
-		while(!isDone()) {
-			processLine(input.poll());
+		while (!isDone()) {
+			if (Thread.currentThread().isInterrupted()) {
+				break;
+			}
+			String line = input.poll();
+			if (line == null) {
+				continue; 
+			}
+			processLine(line);
+		}
+		// save the file 
+		try {
+			fw.flush();
+			fw.close();
+		} 
+		catch (IOException e) {
+			System.out.printf(Message.FILE_NOT_FOUND.toString());
 		}
 	}
+	
+	
 	/**
 	 * processes one line from the input and writes it to the output file
 	 * @param line the line as got from the input queue
 	 * @return not used, always returns null
 	 */
+	@Override
 	public String processLine(String line) {
 		try {
 			fw.append(line + "\n");
-			if(isDone()) {
-				fw.flush();
-				fw.close();
-			}
 		} catch (IOException e) {
 			System.out.printf(Message.FILE_NOT_FOUND.toString(), line);
 		}
 		return null;
+	}
+	
+	
+	/**
+	 * Runs the command 
+	 */
+	@Override
+	public void run() {
+		process(); 
 	}
 }

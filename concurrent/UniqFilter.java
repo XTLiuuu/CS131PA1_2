@@ -7,8 +7,12 @@ import java.util.HashSet;
  *
  */
 public class UniqFilter extends ConcurrentFilter{
+	/**
+	 * The set will record what strings are existing
+	 */
 	private HashSet<String> existingStringSet;
-	//This set will record what strings are existing
+	
+	
 	/**
 	 * The constructor of the uniq filter
 	 */
@@ -16,11 +20,13 @@ public class UniqFilter extends ConcurrentFilter{
 		existingStringSet = new HashSet<String> ();
 	}
 
+	
 	/**
 	 * processes a line from the input queue and returns it if it is not found before
 	 * @param line the line as got from the input queue
 	 * @return the line if it was not found before, null otherwise 
 	 */
+	@Override 
 	public String processLine(String line) {
 		if(existingStringSet.contains(line)) {
 			return null;
@@ -28,5 +34,13 @@ public class UniqFilter extends ConcurrentFilter{
 			existingStringSet.add(line);
 			return line;
 		}
+	}
+	
+	/**
+	 * Runs the current command 
+	 */
+	@Override 
+	public void run() {
+		process();
 	}
 }

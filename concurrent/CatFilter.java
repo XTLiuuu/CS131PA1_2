@@ -7,7 +7,6 @@ import java.util.Scanner;
 import cs131.pa1.filter.Filter;
 import cs131.pa1.filter.Message;
 
-
 /**
  * The filter for cat command
  * @author cs131a
@@ -52,27 +51,40 @@ public class CatFilter extends ConcurrentFilter{
 	 * check whether the file has more lines (through the reader object)
 	 * and calls processLine() for each line 
 	 */
+	@Override
 	public void process() {
 		while(reader.hasNext()) {
+			// stop if the current command is interrupted 
+			if (Thread.currentThread().isInterrupted()) {
+				break;
+			}
 			String processedLine = processLine("");
 			if(processedLine == null) {
 				break;
 			}
-			output.add(processedLine);
+			output.offer(processedLine);
 		}
 		reader.close();
 	}
-
 
 	/**
 	 * Processes each line by reading from the reader object and adding the result to the output queue
 	 * @param line the line to be processed
 	 */
+	@Override
 	public String processLine(String line) {
 		if(reader.hasNextLine()) {
 			return reader.nextLine();
 		} else {
 			return null;
 		}
+	}
+	
+	/**
+	 * Checks if the current command is finished 
+	 */
+	@Override
+	public boolean isDone() {
+		return !running; 
 	}
 }
